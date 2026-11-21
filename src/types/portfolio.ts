@@ -22,6 +22,7 @@ export interface ProjectItem {
   summary?: string
   category: ProjectCategory
   isFeatured: boolean
+  isArchived?: boolean
   displayOrder: number
   year: string
   thumbnailDriveUrl: string
@@ -41,6 +42,24 @@ export interface HonorItem {
   highlightBadge: string
 }
 
+export interface CertificateItem {
+  id: string
+  title: string
+  issuer: string
+  year: string
+  credentialUrl?: string
+}
+
+export interface HighlightItem {
+  label: string
+  value: string
+}
+
+export interface CapabilityItem {
+  title: string
+  items: string[]
+}
+
 export interface SiteSettings {
   contactEmail: string
   cvDriveUrl: string
@@ -49,5 +68,7 @@ export interface SiteSettings {
   profilePhotoDriveUrl: string
   aboutBioParagraph1: string
   aboutBioParagraph2: string
+  aboutHighlights: HighlightItem[]
+  capabilities: CapabilityItem[]
   categories: string[]
 }

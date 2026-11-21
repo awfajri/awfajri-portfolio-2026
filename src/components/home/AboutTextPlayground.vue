@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import {
   Cursor,
   CursorContainer,
@@ -7,10 +7,26 @@ import {
   CursorProvider,
 } from '@animate-ui/vue/primitives/cursor'
 import { useUiStore } from '@/stores/uiStore'
+import { usePortfolioStore } from '@/stores/portfolioStore'
+import { useDriveAsset } from '@/composables/useDriveAsset'
 import type { TextFormatStyle } from '@/types/portfolio'
 
 const uiStore = useUiStore()
+const portfolioStore = usePortfolioStore()
+const { getDriveImageUrl } = useDriveAsset()
+
 const hasPhotoError = ref(false)
+
+const profilePhotoSrc = computed(() => {
+  const raw = portfolioStore.siteSettings.profilePhotoDriveUrl?.trim()
+  if (!raw) return '/images/auf-profile.jpg'
+  if (raw.startsWith('/')) return raw
+  return getDriveImageUrl(raw) || raw
+})
+
+watch(profilePhotoSrc, () => {
+  hasPhotoError.value = false
+})
 
 const styleOptions: { value: TextFormatStyle; label: string; short: string }[] = [
   { value: 'normal', label: 'Normal', short: 'N' },
@@ -27,13 +43,6 @@ const bioTypographyClass = computed(() => {
   }
   return 'font-sans font-normal text-slate-700'
 })
-
-const highlights = [
-  { label: 'Focus', value: 'UI/UX, Front-End & PM' },
-  { label: 'Education', value: 'Informatics · 3.94 GPA' },
-  { label: 'Recognition', value: '4x National UI/UX Finalist' },
-  { label: 'Location', value: 'Karawang, Indonesia' },
-]
 </script>
 
 <template>
@@ -42,7 +51,6 @@ const highlights = [
       <div class="relative rounded-[2rem] border border-slate-200/85 bg-[#FAFBFD] overflow-hidden">
         <CursorProvider>
           <CursorContainer class="p-7 sm:p-12 md:p-14">
-            <!-- Custom Precision Arrow Cursor -->
             <Cursor>
               <svg
                 class="size-5 text-[#2454E8] drop-shadow-sm"
@@ -59,7 +67,6 @@ const highlights = [
               </svg>
             </Cursor>
 
-            <!-- Trailing Role Pill -->
             <CursorFollow side="bottom" align="end" :side-offset="10" :align-offset="10">
               <span
                 class="inline-flex items-center rounded-full bg-[#090E1E] px-3 py-1 text-xs font-medium text-white shadow-md whitespace-nowrap"
@@ -68,7 +75,6 @@ const highlights = [
               </span>
             </CursorFollow>
 
-            <!-- Top Bar: Section Label + Live Typography ToggleGroup -->
             <div
               class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-8 border-b border-slate-200/80"
             >
@@ -82,7 +88,6 @@ const highlights = [
                 </h3>
               </div>
 
-              <!-- Interactive Text Style Switcher (N / B / I) -->
               <div
                 role="group"
                 aria-label="Bio typography style"
@@ -109,16 +114,14 @@ const highlights = [
               </div>
             </div>
 
-            <!-- Main Content Grid: Portrait Photo + Bio & Quick Facts -->
             <div class="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
-              <!-- Left Column: Portrait Photo -->
               <div class="lg:col-span-4">
                 <div
                   class="relative aspect-[4/5] w-full max-w-[280px] lg:max-w-none mx-auto overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs"
                 >
                   <img
                     v-if="!hasPhotoError"
-                    src="/images/auf-profile.jpg"
+                    :src="profilePhotoSrc"
                     alt="Auf Fajri Ramadhani"
                     @error="hasPhotoError = true"
                     class="h-full w-full object-cover object-top"
@@ -128,12 +131,11 @@ const highlights = [
                     class="flex h-full w-full flex-col items-center justify-center bg-slate-100/80 px-6 text-center text-slate-400"
                   >
                     <span class="text-sm font-medium text-slate-500">Photo Placeholder</span>
-                    <span class="mt-1 text-xs">Put file at public/images/auf-profile.jpg</span>
+                    <span class="mt-1 text-xs">Set photo URL in Admin → About & Highlights</span>
                   </div>
                 </div>
               </div>
 
-              <!-- Right Column: Interactive Bio Copy + 2x2 Quick Facts -->
               <div class="lg:col-span-8 flex flex-col justify-between gap-8">
                 <div class="space-y-4">
                   <p
@@ -142,8 +144,7 @@ const highlights = [
                       bioTypographyClass,
                     ]"
                   >
-                    I am Auf Fajri Ramadhani, an Informatics student focused on building digital
-                    products that feel intuitive on the surface and dependable underneath.
+                    {{ portfolioStore.siteSettings.aboutBioParagraph1 }}
                   </p>
                   <p
                     :class="[
@@ -151,17 +152,15 @@ const highlights = [
                       bioTypographyClass,
                     ]"
                   >
-                    From conducting usability testing for dementia care and civic safety platforms
-                    to shipping Vue, TypeScript, and Laravel web applications, I care deeply about
-                    clarity, measurable impact, and clean execution.
+                    {{ portfolioStore.siteSettings.aboutBioParagraph2 }}
                   </p>
                 </div>
 
-                <!-- Structured Quick Facts -->
+                <!-- Dynamic Quick Facts from Admin -->
                 <dl class="grid grid-cols-2 gap-3.5 sm:gap-4">
                   <div
-                    v-for="item in highlights"
-                    :key="item.label"
+                    v-for="(item, idx) in portfolioStore.siteSettings.aboutHighlights"
+                    :key="idx"
                     class="rounded-2xl bg-white border border-slate-200/75 p-4"
                   >
                     <dt class="text-xs font-normal text-slate-500">

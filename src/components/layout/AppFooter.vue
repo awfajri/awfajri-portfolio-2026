@@ -36,7 +36,7 @@ async function copyContactEmail() {
 
 const socialLinks = [
   { label: 'GitHub', href: 'https://github.com/awfajri' },
-  { label: 'LinkedIn', href: 'https://www.linkedin.com' },
+  { label: 'LinkedIn', href: 'https://www.linkedin.com/in/auf-fajri-ramadhani-556528274' },
   { label: 'Email', href: `mailto:${portfolioStore.siteSettings.contactEmail}` },
 ]
 </script>
