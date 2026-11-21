@@ -29,6 +29,11 @@ const cvDownloadLink = computed(() => getDriveDownloadUrl(portfolioStore.siteSet
       aria-hidden="true"
       class="pointer-events-none absolute inset-0 h-full w-full object-cover select-none"
     />
+    <!-- Smooth Bottom Fade to White -->
+    <div
+      aria-hidden="true"
+      class="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-white via-white/80 to-transparent z-[5]"
+    />
 
     <!-- Centered Editorial Content -->
     <div class="relative z-10 w-full max-w-3xl mx-auto flex flex-col items-center text-center">
