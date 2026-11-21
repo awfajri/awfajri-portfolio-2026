@@ -38,6 +38,7 @@ onMounted(() => {
 
     <main class="px-6 pt-32 pb-20 sm:px-8 sm:pt-36">
       <div v-if="project" class="mx-auto max-w-4xl">
+        <!-- Back Link -->
         <button
           type="button"
           @click="router.push('/')"
@@ -47,6 +48,7 @@ onMounted(() => {
           <span>Back to Portfolio</span>
         </button>
 
+        <!-- Case Study Header -->
         <header class="pb-10 border-b border-slate-200/80">
           <div class="flex flex-wrap items-center gap-2.5 mb-4">
             <span
@@ -67,45 +69,32 @@ onMounted(() => {
             {{ project.tagline }}
           </p>
 
-          <div class="mt-7 flex flex-wrap items-center gap-3">
+          <!-- Dynamic External Links -->
+          <div v-if="project.links?.length" class="mt-7 flex flex-wrap items-center gap-3">
             <MotionButton
-              v-if="project.liveUrl"
-              :href="project.liveUrl"
+              v-for="(link, idx) in project.links"
+              :key="idx"
+              :href="link.url"
               target="_blank"
               rel="noopener noreferrer"
               :tap-scale="0.97"
-              class="bg-[#090E1E] hover:bg-[#2454E8] text-white h-10 px-5 text-xs sm:text-sm"
+              :class="[
+                'h-10 px-5 text-xs sm:text-sm',
+                idx === 0
+                  ? 'bg-[#090E1E] hover:bg-[#2454E8] text-white'
+                  : 'bg-white hover:bg-slate-50 text-[#090E1E] border border-slate-200',
+              ]"
             >
-              <span>Live Product</span>
-              <HugeiconsIcon :icon="ArrowUpRight01Icon" class="size-4" />
-            </MotionButton>
-
-            <MotionButton
-              v-if="project.figmaUrl"
-              :href="project.figmaUrl"
-              target="_blank"
-              rel="noopener noreferrer"
-              :tap-scale="0.97"
-              class="bg-white hover:bg-slate-50 text-[#090E1E] border border-slate-200 h-10 px-5 text-xs sm:text-sm"
-            >
-              <span>Figma Prototype</span>
-              <HugeiconsIcon :icon="ArrowUpRight01Icon" class="size-4 text-[#2454E8]" />
-            </MotionButton>
-
-            <MotionButton
-              v-if="project.githubUrl"
-              :href="project.githubUrl"
-              target="_blank"
-              rel="noopener noreferrer"
-              :tap-scale="0.97"
-              class="bg-white hover:bg-slate-50 text-[#090E1E] border border-slate-200 h-10 px-5 text-xs sm:text-sm"
-            >
-              <span>GitHub Repo</span>
-              <HugeiconsIcon :icon="ArrowUpRight01Icon" class="size-4 text-[#2454E8]" />
+              <span>{{ link.label }}</span>
+              <HugeiconsIcon
+                :icon="ArrowUpRight01Icon"
+                :class="['size-4', idx === 0 ? 'text-white' : 'text-[#2454E8]']"
+              />
             </MotionButton>
           </div>
         </header>
 
+        <!-- Cover Image -->
         <div
           v-if="project.thumbnailDriveUrl"
           class="mt-10 overflow-hidden rounded-[1.75rem] border border-slate-200/80 bg-[#FAFBFD]"
@@ -117,6 +106,7 @@ onMounted(() => {
           />
         </div>
 
+        <!-- Metadata Strip -->
         <section class="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div class="rounded-2xl border border-slate-200/80 bg-[#FAFBFD] p-5">
             <p class="text-xs text-slate-500">Role & Ownership</p>
@@ -164,7 +154,18 @@ onMounted(() => {
           </div>
         </section>
 
+        <!-- Narrative & Field Notes -->
         <section class="mt-12 space-y-8">
+          <div v-if="project.summary">
+            <h2 class="text-xl sm:text-2xl font-medium text-[#090E1E]">
+              Overview &
+              <span class="font-serif italic font-normal text-[#2454E8]">Problem Context</span>
+            </h2>
+            <p class="mt-3 text-base text-slate-600 leading-relaxed whitespace-pre-line">
+              {{ project.summary }}
+            </p>
+          </div>
+
           <div
             v-if="project.fieldNotes"
             class="rounded-[1.75rem] border border-blue-100 bg-[#F7F9FF] p-6 sm:p-8"
@@ -177,6 +178,7 @@ onMounted(() => {
             </p>
           </div>
 
+          <!-- Visual Gallery -->
           <div v-if="galleryUrls.length > 0" class="space-y-4 pt-4">
             <h2 class="text-xl sm:text-2xl font-medium text-[#090E1E]">
               Visual
@@ -200,6 +202,7 @@ onMounted(() => {
         </section>
       </div>
 
+      <!-- Not Found Fallback -->
       <div v-else class="mx-auto max-w-xl py-24 text-center">
         <p class="text-xs font-medium text-[#2454E8]">404 · Case Study Not Found</p>
         <h1 class="mt-2 text-3xl font-medium text-[#090E1E]">This project could not be found.</h1>
