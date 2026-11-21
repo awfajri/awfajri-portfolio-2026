@@ -1,34 +1,33 @@
 <script setup lang="ts">
-import type { DialogContentEmits, DialogContentProps } from "@animate-ui/vue/primitives/reka-ui"
-import type { HTMLAttributes } from "vue"
-import { Cancel01Icon } from '@hugeicons/vue'
-import { reactiveOmit } from "@vueuse/core"
-import { cn } from "cn"
+import type { DialogContentEmits, DialogContentProps } from '@animate-ui/vue/primitives/reka-ui'
+import type { HTMLAttributes } from 'vue'
+import { HugeiconsIcon } from '@hugeicons/vue'
+import { Cancel01Icon } from '@hugeicons/core-free-icons'
+import { reactiveOmit } from '@vueuse/core'
+import { cn } from 'cn'
 import {
   DialogClose,
   DialogContent,
   DialogOverlay,
   DialogPortal,
   useForwardPropsEmits,
-} from "@animate-ui/vue/primitives/reka-ui"
+} from '@animate-ui/vue/primitives/reka-ui'
 
 defineOptions({
   inheritAttrs: false,
 })
 
-const props = defineProps<DialogContentProps & { class?: HTMLAttributes["class"] }>()
+const props = defineProps<DialogContentProps & { class?: HTMLAttributes['class'] }>()
 const emits = defineEmits<DialogContentEmits>()
 
-const delegatedProps = reactiveOmit(props, "class")
+const delegatedProps = reactiveOmit(props, 'class')
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits)
 </script>
 
 <template>
   <DialogPortal>
-    <DialogOverlay
-      class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/80"
-    >
+    <DialogOverlay class="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/80">
       <DialogContent
         :class="
           cn(
@@ -37,20 +36,25 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
           )
         "
         v-bind="{ ...$attrs, ...forwarded }"
-        @pointer-down-outside="(event) => {
-          const originalEvent = event.detail.originalEvent;
-          const target = originalEvent.target as HTMLElement;
-          if (originalEvent.offsetX > target.clientWidth || originalEvent.offsetY > target.clientHeight) {
-            event.preventDefault();
+        @pointer-down-outside="
+          (event) => {
+            const originalEvent = event.detail.originalEvent
+            const target = originalEvent.target as HTMLElement
+            if (
+              originalEvent.offsetX > target.clientWidth ||
+              originalEvent.offsetY > target.clientHeight
+            ) {
+              event.preventDefault()
+            }
           }
-        }"
+        "
       >
         <slot />
 
         <DialogClose
           class="absolute top-4 right-4 p-0.5 transition-colors rounded-md hover:bg-secondary"
         >
-          <Cancel01Icon class="w-4 h-4" />
+          <HugeiconsIcon :icon="Cancel01Icon" class="size-4" />
           <span class="sr-only">Close</span>
         </DialogClose>
       </DialogContent>

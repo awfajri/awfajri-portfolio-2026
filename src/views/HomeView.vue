@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import TheWelcome from '../components/TheWelcome.vue'
+import FloatingNavbar from '@/components/layout/FloatingNavbar.vue'
+import HeroSection from '@/components/home/HeroSection.vue'
 </script>
 
 <template>
-  <main>
-    <TheWelcome />
-  </main>
+  <div class="min-h-screen bg-white">
+    <FloatingNavbar />
+    <main>
+      <HeroSection />
+    </main>
+  </div>
 </template>
