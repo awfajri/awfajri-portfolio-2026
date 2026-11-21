@@ -6,6 +6,8 @@ import ScrollRevealManifesto from '@/components/home/ScrollRevealManifesto.vue'
 import AboutTextPlayground from '@/components/home/AboutTextPlayground.vue'
 import SelectedWorks from '@/components/home/SelectedWorks.vue'
 import ArchiveDirectory from '@/components/home/ArchiveDirectory.vue'
+import HonorsBentoGrid from '@/components/home/HonorsBentoGrid.vue'
+import AppFooter from '@/components/layout/AppFooter.vue'
 </script>
 
 <template>
@@ -18,6 +20,8 @@ import ArchiveDirectory from '@/components/home/ArchiveDirectory.vue'
       <AboutTextPlayground />
       <SelectedWorks />
       <ArchiveDirectory />
+      <HonorsBentoGrid />
     </main>
+    <AppFooter />
   </div>
 </template>
