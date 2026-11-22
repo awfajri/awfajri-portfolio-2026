@@ -2,14 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { signOut } from 'firebase/auth'
-import { collection, doc, setDoc, deleteDoc } from 'firebase/firestore'
-import {
-  PinnedList,
-  PinnedListItems,
-  PinnedListLabel,
-  PinnedListPinned,
-  PinnedListUnpinned,
-} from '@animate-ui/vue/primitives/pinned-list'
+import { collection, doc, setDoc, deleteDoc, writeBatch } from 'firebase/firestore'
 import { HugeiconsIcon } from '@hugeicons/vue'
 import { Add01Icon, Delete02Icon, Logout01Icon } from '@hugeicons/core-free-icons'
 import { auth, db } from '@/lib/firebase'
@@ -29,6 +22,7 @@ const isSaving = ref(false)
 const statusMessage = ref('')
 const selectedId = ref<string | null>(null)
 const newCategory = ref('')
+const draggedId = ref<string | null>(null)
 
 const tabs: { id: AdminTab; label: string }[] = [
   { id: 'projects', label: 'Works & Archive' },
@@ -37,9 +31,7 @@ const tabs: { id: AdminTab; label: string }[] = [
   { id: 'settings', label: 'Footer & Settings' },
 ]
 
-const categories = computed(
-  () => portfolioStore.siteSettings.categories || ['ux', 'dev', 'aiot', 'design'],
-)
+const categories = computed(() => portfolioStore.siteSettings.categories || [])
 
 function createEmptyForm(): Omit<ProjectItem, 'id'> {
   return {
@@ -47,7 +39,8 @@ function createEmptyForm(): Omit<ProjectItem, 'id'> {
     slug: '',
     tagline: '',
     summary: '',
-    category: categories.value[0] || 'ux',
+    category: categories.value[0] || '',
+    roleLens: 'both',
     isFeatured: false,
     isArchived: false,
     displayOrder: portfolioStore.projects.length + 1,
@@ -66,10 +59,15 @@ const form = ref<Omit<ProjectItem, 'id'>>(createEmptyForm())
 const techStackInput = ref('')
 
 const pinnedProjects = computed(() =>
-  portfolioStore.projects.filter((p) => p.isFeatured && !p.isArchived),
+  portfolioStore.projects
+    .filter((p) => p.isFeatured && !p.isArchived)
+    .sort((a, b) => a.displayOrder - b.displayOrder),
 )
+
 const unpinnedProjects = computed(() =>
-  portfolioStore.projects.filter((p) => !p.isFeatured || p.isArchived),
+  portfolioStore.projects
+    .filter((p) => !p.isFeatured || p.isArchived)
+    .sort((a, b) => a.displayOrder - b.displayOrder),
 )
 
 function generateSlug(title: string) {
@@ -96,6 +94,7 @@ function selectProject(project: ProjectItem) {
     tagline: project.tagline,
     summary: project.summary || '',
     category: project.category,
+    roleLens: project.roleLens || 'both',
     isFeatured: project.isFeatured,
     isArchived: Boolean(project.isArchived),
     displayOrder: project.displayOrder,
@@ -112,23 +111,20 @@ function selectProject(project: ProjectItem) {
   statusMessage.value = ''
 }
 
-async function handlePinnedChange(id: string) {
-  const target = portfolioStore.projects.find((p) => p.id === id)
-  if (!target) return
+async function handlePinToggle(project: ProjectItem) {
+  const nextFeatured = !project.isFeatured
+  project.isFeatured = nextFeatured
+  if (nextFeatured) project.isArchived = false
 
-  const nextFeatured = !target.isFeatured
-  target.isFeatured = nextFeatured
-  if (nextFeatured) target.isArchived = false
-
-  if (selectedId.value === id) {
+  if (selectedId.value === project.id) {
     form.value.isFeatured = nextFeatured
     if (nextFeatured) form.value.isArchived = false
   }
 
   try {
     await setDoc(
-      doc(db, 'projects', id),
-      { ...target, isFeatured: nextFeatured, isArchived: target.isArchived },
+      doc(db, 'projects', project.id),
+      { isFeatured: nextFeatured, isArchived: project.isArchived },
       { merge: true },
     )
     statusMessage.value = nextFeatured
@@ -152,7 +148,7 @@ async function handleArchiveToggle(project: ProjectItem) {
   try {
     await setDoc(
       doc(db, 'projects', project.id),
-      { ...project, isArchived: nextArchived, isFeatured: project.isFeatured },
+      { isArchived: nextArchived, isFeatured: project.isFeatured },
       { merge: true },
     )
     statusMessage.value = nextArchived
@@ -160,6 +156,43 @@ async function handleArchiveToggle(project: ProjectItem) {
       : 'Project dipulihkan dari arsip.'
   } catch {
     statusMessage.value = 'Gagal mengubah status arsip.'
+  }
+}
+
+function onDragStart(id: string) {
+  draggedId.value = id
+}
+
+function onDragEnd() {
+  draggedId.value = null
+}
+
+async function onDropProject(targetId: string) {
+  const sourceId = draggedId.value
+  draggedId.value = null
+  if (!sourceId || sourceId === targetId) return
+
+  const sorted = [...portfolioStore.projects].sort((a, b) => a.displayOrder - b.displayOrder)
+  const fromIndex = sorted.findIndex((p) => p.id === sourceId)
+  const toIndex = sorted.findIndex((p) => p.id === targetId)
+  if (fromIndex === -1 || toIndex === -1) return
+
+  const [moved] = sorted.splice(fromIndex, 1)
+  if (!moved) return
+  sorted.splice(toIndex, 0, moved)
+
+  const batch = writeBatch(db)
+  sorted.forEach((item, index) => {
+    item.displayOrder = index + 1
+    batch.set(doc(db, 'projects', item.id), { displayOrder: index + 1 }, { merge: true })
+  })
+  portfolioStore.projects = sorted
+
+  try {
+    await batch.commit()
+    statusMessage.value = 'Urutan project berhasil disimpan.'
+  } catch {
+    statusMessage.value = 'Gagal menyimpan urutan project ke Firestore.'
   }
 }
 
@@ -239,7 +272,6 @@ async function removeProject(id: string) {
     if (selectedId.value === id) startNewProject()
     statusMessage.value = 'Project berhasil dihapus.'
   } catch (err: unknown) {
-    console.error('Delete project error:', err)
     const msg = err instanceof Error ? err.message : 'Unknown error'
     statusMessage.value = `Gagal menghapus: ${msg}`
   }
@@ -329,6 +361,9 @@ onMounted(() => {
                 ×
               </button>
             </span>
+            <span v-if="categories.length === 0" class="text-xs text-slate-400">
+              Belum ada kategori.
+            </span>
           </div>
 
           <div class="flex items-center gap-2 shrink-0">
@@ -351,50 +386,66 @@ onMounted(() => {
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          <aside class="lg:col-span-4 rounded-[1.75rem] border border-slate-200/85 bg-white p-5">
-            <PinnedList class="flex flex-col gap-6" @pinned-change="handlePinnedChange">
-              <PinnedListPinned>
-                <PinnedListLabel
-                  :hide="pinnedProjects.length === 0"
-                  class="mb-2.5 block text-xs font-medium uppercase tracking-wider text-[#2454E8]"
-                >
-                  Pinned · Selected Works ({{ pinnedProjects.length }})
-                </PinnedListLabel>
-                <PinnedListItems class="flex flex-col gap-2">
-                  <PinnedProjectRow
-                    v-for="item in pinnedProjects"
-                    :key="item.id"
-                    :item="item"
-                    :is-selected="selectedId === item.id"
-                    @select="selectProject"
-                    @archive="handleArchiveToggle"
-                    @delete="removeProject"
-                  />
-                </PinnedListItems>
-              </PinnedListPinned>
+          <!-- Left: Draggable Project List -->
+          <aside
+            class="lg:col-span-4 rounded-[1.75rem] border border-slate-200/85 bg-white p-5 space-y-6"
+          >
+            <div>
+              <p class="mb-2.5 text-xs font-medium uppercase tracking-wider text-[#2454E8]">
+                Pinned · Selected Works ({{ pinnedProjects.length }})
+              </p>
+              <div class="flex flex-col gap-2">
+                <PinnedProjectRow
+                  v-for="item in pinnedProjects"
+                  :key="item.id"
+                  :item="item"
+                  :is-selected="selectedId === item.id"
+                  :is-dragging="draggedId === item.id"
+                  @select="selectProject"
+                  @pin="handlePinToggle"
+                  @archive="handleArchiveToggle"
+                  @delete="removeProject"
+                  @dragstart="onDragStart"
+                  @drop="onDropProject"
+                  @dragend="onDragEnd"
+                />
+                <p v-if="pinnedProjects.length === 0" class="text-xs text-slate-400 py-2">
+                  Belum ada project yang di-pin.
+                </p>
+              </div>
+            </div>
 
-              <PinnedListUnpinned>
-                <PinnedListLabel
-                  :hide="unpinnedProjects.length === 0"
-                  class="mb-2.5 block text-xs font-medium uppercase tracking-wider text-slate-400"
-                >
-                  All · Archive ({{ unpinnedProjects.length }})
-                </PinnedListLabel>
-                <PinnedListItems class="flex flex-col gap-2">
-                  <PinnedProjectRow
-                    v-for="item in unpinnedProjects"
-                    :key="item.id"
-                    :item="item"
-                    :is-selected="selectedId === item.id"
-                    @select="selectProject"
-                    @archive="handleArchiveToggle"
-                    @delete="removeProject"
-                  />
-                </PinnedListItems>
-              </PinnedListUnpinned>
-            </PinnedList>
+            <div class="pt-4 border-t border-slate-100">
+              <p class="mb-2.5 text-xs font-medium uppercase tracking-wider text-slate-400">
+                All · Archive ({{ unpinnedProjects.length }})
+              </p>
+              <div class="flex flex-col gap-2">
+                <PinnedProjectRow
+                  v-for="item in unpinnedProjects"
+                  :key="item.id"
+                  :item="item"
+                  :is-selected="selectedId === item.id"
+                  :is-dragging="draggedId === item.id"
+                  @select="selectProject"
+                  @pin="handlePinToggle"
+                  @archive="handleArchiveToggle"
+                  @delete="removeProject"
+                  @dragstart="onDragStart"
+                  @drop="onDropProject"
+                  @dragend="onDragEnd"
+                />
+                <p v-if="unpinnedProjects.length === 0" class="text-xs text-slate-400 py-2">
+                  Belum ada project di archive.
+                </p>
+              </div>
+            </div>
+
+            <p class="text-[11px] text-slate-400">
+              Tip: Drag ikon titik 6 di kiri item untuk mengatur urutan tampil.
+            </p>
           </aside>
 
+          <!-- Right: Project Editor Form -->
           <section
             class="lg:col-span-8 rounded-[1.75rem] border border-slate-200/85 bg-white p-6 sm:p-8"
           >
@@ -442,7 +493,9 @@ onMounted(() => {
                 </div>
 
                 <div>
-                  <label class="block text-xs font-medium text-slate-600 mb-1.5">Category</label>
+                  <label class="block text-xs font-medium text-slate-600 mb-1.5"
+                    >Category (Archive Filter)</label
+                  >
                   <select
                     v-model="form.category"
                     class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm bg-white focus:border-[#2454E8] focus:outline-none"
@@ -459,6 +512,18 @@ onMounted(() => {
                     v-model="form.year"
                     type="text"
                     placeholder="2026"
+                    class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-[#2454E8] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-xs font-medium text-slate-600 mb-1.5"
+                    >Display Order</label
+                  >
+                  <input
+                    v-model.number="form.displayOrder"
+                    type="number"
+                    min="1"
                     class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-[#2454E8] focus:outline-none"
                   />
                 </div>
@@ -507,7 +572,7 @@ onMounted(() => {
                   <input
                     v-model="techStackInput"
                     type="text"
-                    placeholder="Vue 3, TypeScript, Tailwind CSS, Figma"
+                    placeholder="Figma, Notion, Google Colab, Vue 3"
                     class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-[#2454E8] focus:outline-none"
                   />
                 </div>

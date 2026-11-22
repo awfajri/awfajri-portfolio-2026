@@ -60,7 +60,12 @@ const socialLinks = [
         <!-- Clean Readability Overlay -->
         <div
           aria-hidden="true"
-          class="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#090E1E] via-[#090E1E]/90 to-[#1E3A8A]/70"
+          class="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#090E1E] via-[#090E1E]/60 to-transparent"
+        ></div>
+        <div
+          class="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#090E1E]/80 via-transparent to-transparent"
+        ></div>
+
         />
 
         <div class="relative z-10 max-w-2xl">

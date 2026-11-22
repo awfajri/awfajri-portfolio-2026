@@ -1,5 +1,6 @@
 export type ProjectCategory = string
 export type RoleLensMode = 'all' | 'ux' | 'engineering'
+export type ProjectRoleLens = 'ux' | 'engineering' | 'both'
 export type TextFormatStyle = 'normal' | 'bold' | 'italic'
 
 export interface ProjectLink {
@@ -21,6 +22,7 @@ export interface ProjectItem {
   tagline: string
   summary?: string
   category: ProjectCategory
+  roleLens: ProjectRoleLens
   isFeatured: boolean
   isArchived?: boolean
   displayOrder: number
@@ -40,6 +42,7 @@ export interface HonorItem {
   organizer: string
   year: string
   highlightBadge: string
+  medalSvg?: string
 }
 
 export interface CertificateItem {

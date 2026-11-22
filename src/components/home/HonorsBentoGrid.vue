@@ -50,26 +50,34 @@ const capabilityIcons = [SparklesIcon, CodeIcon, Layers01Icon]
             </span>
           </div>
 
-          <ul class="mt-5 divide-y divide-slate-200/70">
+          <ul v-if="portfolioStore.honors.length > 0" class="mt-5 divide-y divide-slate-200/70">
             <li
               v-for="honor in portfolioStore.honors"
               :key="honor.id"
               class="py-4 first:pt-1 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
             >
-              <div>
-                <div class="flex flex-wrap items-center gap-2">
-                  <span class="text-sm sm:text-base font-medium text-[#090E1E]">
-                    {{ honor.title }}
-                  </span>
-                  <span
-                    class="rounded-full bg-white border border-blue-100 px-2.5 py-0.5 text-[11px] font-medium text-[#2454E8]"
-                  >
-                    {{ honor.highlightBadge }}
-                  </span>
+              <div class="flex items-start gap-3">
+                <img
+                  v-if="honor.medalSvg"
+                  :src="honor.medalSvg"
+                  :alt="honor.highlightBadge"
+                  class="size-8 object-contain shrink-0 mt-0.5"
+                />
+                <div>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-sm sm:text-base font-medium text-[#090E1E]">
+                      {{ honor.title }}
+                    </span>
+                    <span
+                      class="rounded-full bg-white border border-blue-100 px-2.5 py-0.5 text-[11px] font-medium text-[#2454E8]"
+                    >
+                      {{ honor.highlightBadge }}
+                    </span>
+                  </div>
+                  <p class="mt-0.5 text-xs sm:text-sm text-slate-500">
+                    {{ honor.organizer }}
+                  </p>
                 </div>
-                <p class="mt-0.5 text-xs sm:text-sm text-slate-500">
-                  {{ honor.organizer }}
-                </p>
               </div>
 
               <span class="text-xs font-medium text-slate-400 tabular-nums shrink-0">
@@ -77,6 +85,8 @@ const capabilityIcons = [SparklesIcon, CodeIcon, Layers01Icon]
               </span>
             </li>
           </ul>
+
+          <p v-else class="mt-6 text-xs text-slate-500">No honors added yet.</p>
         </motion.div>
 
         <!-- Bento Card 2: Dynamic Certifications (5 cols) -->
@@ -138,8 +148,9 @@ const capabilityIcons = [SparklesIcon, CodeIcon, Layers01Icon]
           <p v-else class="mt-6 text-xs text-slate-500">No certifications added yet.</p>
         </motion.div>
 
-        <!-- Bento Card 3: Dynamic Core Capabilities (Full 12 cols) -->
+        <!-- Bento Card 3: Dynamic Core Capabilities (Full 12 cols, only if populated) -->
         <motion.div
+          v-if="portfolioStore.siteSettings.capabilities.length > 0"
           :initial="{ opacity: 0, y: 16 }"
           :while-in-view="{ opacity: 1, y: 0 }"
           :viewport="{ once: true, amount: 0.15 }"

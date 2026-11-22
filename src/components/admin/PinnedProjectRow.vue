@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { PinnedListItem, PinnedList } from '@animate-ui/vue/primitives/pinned-list'
 import { HugeiconsIcon } from '@hugeicons/vue'
 import { PinIcon, Edit02Icon, Delete02Icon } from '@hugeicons/core-free-icons'
 import type { ProjectItem } from '@/types/portfolio'
@@ -7,27 +6,54 @@ import type { ProjectItem } from '@/types/portfolio'
 defineProps<{
   item: ProjectItem
   isSelected: boolean
+  isDragging?: boolean
 }>()
 
 defineEmits<{
   select: [project: ProjectItem]
+  pin: [project: ProjectItem]
   archive: [project: ProjectItem]
   delete: [id: string]
+  dragstart: [id: string]
+  dragover: [id: string]
+  drop: [id: string]
+  dragend: []
 }>()
 </script>
 
 <template>
-  <PinnedListItem
-    :id="item.id"
+  <div
+    draggable="true"
+    @dragstart="$emit('dragstart', item.id)"
+    @dragover.prevent="$emit('dragover', item.id)"
+    @drop.prevent="$emit('drop', item.id)"
+    @dragend="$emit('dragend')"
     :class="[
-      'group flex items-center justify-between gap-2 rounded-2xl border px-3.5 py-3 transition-colors',
+      'group flex items-center justify-between gap-2 rounded-2xl border px-3 py-3 transition-all select-none',
+      isDragging ? 'opacity-40 scale-[0.98]' : '',
       isSelected
         ? 'border-[#2454E8] bg-[#F7F9FF]'
         : item.isArchived
-          ? 'border-slate-200/60 bg-slate-50/70 opacity-70'
+          ? 'border-slate-200/60 bg-slate-50/70 opacity-75'
           : 'border-slate-200/80 bg-white hover:border-slate-300',
     ]"
   >
+    <!-- Drag Handle -->
+    <span
+      title="Drag to reorder"
+      class="cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500 px-0.5 shrink-0"
+    >
+      <svg class="size-4" viewBox="0 0 24 24" fill="currentColor">
+        <circle cx="9" cy="6" r="1.5" />
+        <circle cx="15" cy="6" r="1.5" />
+        <circle cx="9" cy="12" r="1.5" />
+        <circle cx="15" cy="12" r="1.5" />
+        <circle cx="9" cy="18" r="1.5" />
+        <circle cx="15" cy="18" r="1.5" />
+      </svg>
+    </span>
+
+    <!-- Click card ONLY selects for editing -->
     <button
       type="button"
       @click="$emit('select', item)"
@@ -37,14 +63,16 @@ defineEmits<{
         {{ item.title }}
       </p>
       <p class="text-[11px] text-slate-500 truncate">
-        {{ item.year }} · {{ item.category.toUpperCase() }}
+        {{ item.year }} · {{ item.category ? item.category.toUpperCase() : 'UNCATEGORIZED' }}
         <span v-if="item.isArchived" class="ml-1 text-amber-600 font-medium">· Archived</span>
       </p>
     </button>
 
     <!-- 4 Action Icons: Pin, Archive, Edit, Delete -->
     <div class="flex items-center gap-0.5 shrink-0">
-      <PinnedListPin
+      <button
+        type="button"
+        @click.stop="$emit('pin', item)"
         :aria-label="item.isFeatured ? 'Unpin project' : 'Pin to Selected Works'"
         :title="item.isFeatured ? 'Unpin from Selected Works' : 'Pin to Selected Works'"
         :class="[
@@ -55,11 +83,11 @@ defineEmits<{
         ]"
       >
         <HugeiconsIcon :icon="PinIcon" class="size-3.5" />
-      </PinnedListPin>
+      </button>
 
       <button
         type="button"
-        @click="$emit('archive', item)"
+        @click.stop="$emit('archive', item)"
         :aria-label="item.isArchived ? 'Unarchive project' : 'Archive project'"
         :title="item.isArchived ? 'Restore from Archive' : 'Hide / Archive Project'"
         :class="[
@@ -86,7 +114,7 @@ defineEmits<{
 
       <button
         type="button"
-        @click="$emit('select', item)"
+        @click.stop="$emit('select', item)"
         aria-label="Edit project"
         title="Edit Project"
         class="inline-flex size-7 items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-[#090E1E] cursor-pointer"
@@ -96,7 +124,7 @@ defineEmits<{
 
       <button
         type="button"
-        @click="$emit('delete', item.id)"
+        @click.stop="$emit('delete', item.id)"
         aria-label="Delete project"
         title="Delete Project"
         class="inline-flex size-7 items-center justify-center rounded-full text-slate-400 hover:bg-red-50 hover:text-red-600 cursor-pointer"
@@ -104,5 +132,5 @@ defineEmits<{
         <HugeiconsIcon :icon="Delete02Icon" class="size-3.5" />
       </button>
     </div>
-  </PinnedListItem>
+  </div>
 </template>

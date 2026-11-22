@@ -18,11 +18,20 @@ const settingsForm = ref<SiteSettings>({ ...portfolioStore.siteSettings })
 const isSaving = ref(false)
 const statusMessage = ref('')
 
+const medalOptions = [
+  { label: 'No Medal', value: '' },
+  { label: '1st Place (1st.svg)', value: '/images/1st.svg' },
+  { label: '2nd Place (2nd.svg)', value: '/images/2nd.svg' },
+  { label: '3rd Place (3rd.svg)', value: '/images/3rd.svg' },
+  { label: 'Top 10 / Finalist (10th.svg)', value: '/images/10th.svg' },
+]
+
 const newHonor = ref<Omit<HonorItem, 'id'>>({
   title: '',
   organizer: '',
   year: new Date().getFullYear().toString(),
   highlightBadge: '',
+  medalSvg: '',
 })
 
 const newCert = ref<Omit<CertificateItem, 'id'>>({
@@ -37,7 +46,7 @@ watch(
   (val) => {
     settingsForm.value = {
       ...val,
-      categories: [...(val.categories || ['ux', 'dev', 'aiot', 'design'])],
+      categories: [...(val.categories || [])],
       aboutHighlights: (val.aboutHighlights || []).map((h) => ({ ...h })),
       capabilities: (val.capabilities || []).map((c) => ({
         title: c.title,
@@ -54,6 +63,14 @@ function addHighlight() {
 
 function removeHighlight(idx: number) {
   settingsForm.value.aboutHighlights.splice(idx, 1)
+}
+
+function addCapabilityColumn() {
+  settingsForm.value.capabilities.push({ title: '', items: [] })
+}
+
+function removeCapabilityColumn(idx: number) {
+  settingsForm.value.capabilities.splice(idx, 1)
 }
 
 function updateCapabilityItems(idx: number, raw: string) {
@@ -93,6 +110,7 @@ async function addHonor() {
       organizer: '',
       year: new Date().getFullYear().toString(),
       highlightBadge: '',
+      medalSvg: '',
     }
     statusMessage.value = 'Prestasi berhasil ditambahkan.'
   } catch {
@@ -187,7 +205,6 @@ async function deleteCertificate(id: string) {
         />
       </div>
 
-      <!-- Editable Quick Facts (Focus, Education, Recognition, Location) -->
       <div class="pt-4 border-t border-slate-100 space-y-3">
         <div class="flex items-center justify-between">
           <label class="text-xs font-medium text-slate-600">Quick Facts Cards (About Bento)</label>
@@ -255,12 +272,20 @@ async function deleteCertificate(id: string) {
             :key="honor.id"
             class="flex items-center justify-between rounded-xl border border-slate-200/80 px-4 py-3"
           >
-            <div>
-              <p class="text-sm font-medium text-[#090E1E]">
-                {{ honor.title }}
-                <span class="ml-2 text-xs text-[#2454E8]">({{ honor.highlightBadge }})</span>
-              </p>
-              <p class="text-xs text-slate-500">{{ honor.organizer }} · {{ honor.year }}</p>
+            <div class="flex items-center gap-3">
+              <img
+                v-if="honor.medalSvg"
+                :src="honor.medalSvg"
+                :alt="honor.highlightBadge"
+                class="size-7 object-contain shrink-0"
+              />
+              <div>
+                <p class="text-sm font-medium text-[#090E1E]">
+                  {{ honor.title }}
+                  <span class="ml-2 text-xs text-[#2454E8]">({{ honor.highlightBadge }})</span>
+                </p>
+                <p class="text-xs text-slate-500">{{ honor.organizer }} · {{ honor.year }}</p>
+              </div>
             </div>
             <button
               type="button"
@@ -298,13 +323,21 @@ async function deleteCertificate(id: string) {
             placeholder="Badge (e.g. 2nd Place)"
             class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:border-[#2454E8] focus:outline-none"
           />
-          <div class="flex gap-2">
+          <select
+            v-model="newHonor.medalSvg"
+            class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:border-[#2454E8] focus:outline-none"
+          >
+            <option v-for="m in medalOptions" :key="m.value" :value="m.value">
+              {{ m.label }}
+            </option>
+          </select>
+          <div class="sm:col-span-2 flex gap-2">
             <input
               v-model="newHonor.year"
               type="text"
               required
               placeholder="2026"
-              class="w-24 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:border-[#2454E8] focus:outline-none"
+              class="w-28 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:border-[#2454E8] focus:outline-none"
             />
             <MotionButton
               type="submit"
@@ -387,35 +420,57 @@ async function deleteCertificate(id: string) {
         </form>
       </div>
 
-      <!-- Core Capabilities (Bento Bottom 3 Columns) -->
+      <!-- Core Capabilities (Bento Bottom) -->
       <form @submit.prevent="saveSiteSettings" class="pt-6 border-t border-slate-100 space-y-4">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 class="text-lg font-medium text-[#090E1E]">Core Capabilities (Bento Bottom)</h2>
             <p class="text-xs text-slate-500">1 baris = 1 poin keahlian.</p>
           </div>
-          <MotionButton
-            type="submit"
-            :disabled="isSaving"
-            :tap-scale="0.97"
-            class="bg-[#090E1E] hover:bg-[#2454E8] text-white h-9 px-5 text-xs"
-          >
-            Save Capabilities
-          </MotionButton>
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              @click="addCapabilityColumn"
+              class="rounded-full border border-slate-200 bg-white px-4 h-9 text-xs font-medium text-[#2454E8] hover:bg-slate-50 cursor-pointer"
+            >
+              + Add Column
+            </button>
+            <MotionButton
+              type="submit"
+              :disabled="isSaving"
+              :tap-scale="0.97"
+              class="bg-[#090E1E] hover:bg-[#2454E8] text-white h-9 px-5 text-xs"
+            >
+              Save Capabilities
+            </MotionButton>
+          </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div
+          v-if="settingsForm.capabilities.length > 0"
+          class="grid grid-cols-1 md:grid-cols-3 gap-4"
+        >
           <div
             v-for="(cap, idx) in settingsForm.capabilities"
             :key="idx"
             class="rounded-2xl border border-slate-200/80 bg-[#FAFBFD] p-4 space-y-2.5"
           >
-            <input
-              v-model="cap.title"
-              type="text"
-              placeholder="Column Title"
-              class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium focus:border-[#2454E8] focus:outline-none"
-            />
+            <div class="flex items-center gap-2">
+              <input
+                v-model="cap.title"
+                type="text"
+                placeholder="Column Title"
+                class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium focus:border-[#2454E8] focus:outline-none"
+              />
+              <button
+                type="button"
+                @click="removeCapabilityColumn(idx)"
+                aria-label="Remove capability column"
+                class="text-slate-400 hover:text-red-600 cursor-pointer shrink-0"
+              >
+                <HugeiconsIcon :icon="Delete02Icon" class="size-4" />
+              </button>
+            </div>
             <textarea
               :value="cap.items.join('\n')"
               @input="updateCapabilityItems(idx, ($event.target as HTMLTextAreaElement).value)"
@@ -425,6 +480,10 @@ async function deleteCertificate(id: string) {
             />
           </div>
         </div>
+
+        <p v-else class="text-xs text-slate-400">
+          Belum ada kolom Core Capabilities. Klik <strong>+ Add Column</strong> untuk menambah.
+        </p>
 
         <p v-if="statusMessage" class="text-xs font-medium text-[#2454E8]">{{ statusMessage }}</p>
       </form>

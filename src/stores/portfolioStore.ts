@@ -34,7 +34,7 @@ export const usePortfolioStore = defineStore('portfolio', () => {
   const archiveProjects = computed(() =>
     projects.value
       .filter((p) => !p.isFeatured && !p.isArchived)
-      .sort((a, b) => Number(b.year) - Number(a.year)),
+      .sort((a, b) => a.displayOrder - b.displayOrder),
   )
 
   async function fetchPortfolioData() {
@@ -56,6 +56,7 @@ export const usePortfolioStore = defineStore('portfolio', () => {
           tagline: data.tagline || '',
           summary: data.summary || '',
           category: data.category || '',
+          roleLens: data.roleLens || 'both',
           isFeatured: Boolean(data.isFeatured),
           isArchived: Boolean(data.isArchived),
           displayOrder: data.displayOrder ?? 99,
