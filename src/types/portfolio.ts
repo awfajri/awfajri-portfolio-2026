@@ -61,6 +61,7 @@ export interface HighlightItem {
 export interface CapabilityItem {
   title: string
   items: string[]
+  badgeSvg?: string
 }
 
 export interface SiteSettings {

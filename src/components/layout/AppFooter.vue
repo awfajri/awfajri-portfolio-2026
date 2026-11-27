@@ -65,9 +65,6 @@ const socialLinks = [
         <div
           class="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#090E1E]/80 via-transparent to-transparent"
         ></div>
-
-        />
-
         <div class="relative z-10 max-w-2xl">
           <p class="text-xs sm:text-sm font-medium tracking-wide text-blue-300">
             Let's Collaborate

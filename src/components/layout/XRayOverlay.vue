@@ -1,62 +1,59 @@
 <script setup lang="ts">
-import { motion, AnimatePresence } from 'motion-v'
-import { HugeiconsIcon } from '@hugeicons/vue'
-import { Cancel01Icon, Layers01Icon } from '@hugeicons/core-free-icons'
 import { useUiStore } from '@/stores/uiStore'
 
 const uiStore = useUiStore()
 </script>
 
 <template>
-  <AnimatePresence>
-    <div v-if="uiStore.isXRayActive" class="fixed inset-0 z-[60] pointer-events-none">
-      <div class="mx-auto h-full max-w-5xl px-6 sm:px-8">
-        <div class="grid h-full grid-cols-4 sm:grid-cols-12 gap-4">
-          <div
-            v-for="col in 12"
-            :key="col"
-            :class="[
-              'h-full border-x border-[#2454E8]/15 bg-[#2454E8]/[0.03]',
-              col > 4 ? 'hidden sm:block' : '',
-            ]"
-          />
+  <Teleport to="body">
+    <div v-if="uiStore.isXRayActive" class="pointer-events-none fixed inset-0 z-40">
+      <!-- Wrapper luar: samakan padding horizontal dengan semua section -->
+      <div class="h-full w-full px-6 sm:px-8">
+        <!-- Container dalam: samakan max-w-5xl (1024px) persis dengan konten -->
+        <div class="mx-auto h-full max-w-5xl border-x border-[#2454E8]/25">
+          <div class="grid h-full grid-cols-4 sm:grid-cols-8 lg:grid-cols-12 gap-4 sm:gap-6">
+            <div
+              v-for="n in 12"
+              :key="n"
+              class="h-full bg-[#2454E8]/[0.035] border-x border-[#2454E8]/[0.08]"
+            />
+          </div>
         </div>
       </div>
 
-      <motion.div
-        :initial="{ opacity: 0, y: 16 }"
-        :animate="{ opacity: 1, y: 0 }"
-        :exit="{ opacity: 0, y: 12 }"
-        class="pointer-events-auto fixed bottom-5 right-5 flex items-center gap-4 rounded-full border border-slate-200 bg-white/95 backdrop-blur-md px-4 py-2 text-xs text-slate-700 shadow-lg shadow-slate-900/10"
+      <!-- Floating X-Ray HUD -->
+      <div
+        class="pointer-events-auto fixed bottom-5 right-5 z-50 inline-flex items-center gap-3 rounded-full border border-slate-200/90 bg-white/95 backdrop-blur-md px-4 py-2 text-xs shadow-lg shadow-slate-900/10"
       >
-        <span class="flex items-center gap-1.5 font-medium text-[#2454E8]">
-          <HugeiconsIcon :icon="Layers01Icon" class="size-3.5" />
-          <span>X-Ray Active</span>
+        <span class="inline-flex items-center gap-1.5 font-medium text-[#2454E8]">
+          <span class="size-2 rounded-full bg-[#2454E8] animate-pulse" />
+          X-Ray Active
         </span>
 
-        <span class="hidden sm:inline text-slate-300">|</span>
+        <span class="h-3.5 w-px bg-slate-200" />
 
-        <div class="hidden sm:flex items-center gap-2">
+        <span class="hidden sm:inline-flex items-center gap-2 text-slate-600">
           <span class="inline-flex items-center gap-1">
             <span class="size-2.5 rounded-full bg-[#090E1E]" />
-            <code class="text-[11px]">#090E1E</code>
+            #090E1E
           </span>
           <span class="inline-flex items-center gap-1">
             <span class="size-2.5 rounded-full bg-[#2454E8]" />
-            <code class="text-[11px]">#2454E8</code>
+            #2454E8
           </span>
-          <span class="text-[11px] text-slate-500">Outfit + Times New Roman</span>
-        </div>
+          <span class="text-slate-400">·</span>
+          <span>Outfit + Serif</span>
+        </span>
 
         <button
           type="button"
           @click="uiStore.toggleXRay()"
-          aria-label="Close X-Ray inspector"
-          class="inline-flex size-6 items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 cursor-pointer"
+          aria-label="Close X-Ray Mode"
+          class="ml-1 inline-flex size-5 items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-700 cursor-pointer"
         >
-          <HugeiconsIcon :icon="Cancel01Icon" class="size-3.5" />
+          ✕
         </button>
-      </motion.div>
+      </div>
     </div>
-  </AnimatePresence>
+  </Teleport>
 </template>

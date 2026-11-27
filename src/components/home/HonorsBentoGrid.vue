@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { motion } from 'motion-v'
 import { HugeiconsIcon } from '@hugeicons/vue'
-import {
-  Award01Icon,
-  ArrowUpRight01Icon,
-  Layers01Icon,
-  CodeIcon,
-  SparklesIcon,
-} from '@hugeicons/core-free-icons'
+import { Award01Icon, ArrowUpRight01Icon } from '@hugeicons/core-free-icons'
 import { usePortfolioStore } from '@/stores/portfolioStore'
 
 const portfolioStore = usePortfolioStore()
-const capabilityIcons = [SparklesIcon, CodeIcon, Layers01Icon]
+
+const defaultCapabilityBadges = [
+  '/images/badge-designer.svg',
+  '/images/badge-3d-artist.svg',
+  '/images/badge-illustrator.svg',
+  '/images/badge-animator.svg',
+]
 </script>
 
 <template>
@@ -148,7 +148,7 @@ const capabilityIcons = [SparklesIcon, CodeIcon, Layers01Icon]
           <p v-else class="mt-6 text-xs text-slate-500">No certifications added yet.</p>
         </motion.div>
 
-        <!-- Bento Card 3: Dynamic Core Capabilities (Full 12 cols, only if populated) -->
+        <!-- Bento Card 3: Core Capabilities with SVG Badges -->
         <motion.div
           v-if="portfolioStore.siteSettings.capabilities.length > 0"
           :initial="{ opacity: 0, y: 16 }"
@@ -163,15 +163,14 @@ const capabilityIcons = [SparklesIcon, CodeIcon, Layers01Icon]
               :key="idx"
               class="flex flex-col"
             >
-              <div class="flex items-center gap-2.5 mb-3">
-                <span
-                  class="inline-flex size-8 items-center justify-center rounded-full bg-white border border-slate-200/80 text-[#2454E8]"
-                >
-                  <HugeiconsIcon
-                    :icon="capabilityIcons[idx % capabilityIcons.length]"
-                    class="size-4"
-                  />
-                </span>
+              <div class="flex items-center gap-3 mb-3">
+                <img
+                  :src="
+                    cap.badgeSvg || defaultCapabilityBadges[idx % defaultCapabilityBadges.length]
+                  "
+                  :alt="cap.title"
+                  class="size-7 object-contain shrink-0"
+                />
                 <h3 class="text-base font-medium text-[#090E1E]">
                   {{ cap.title }}
                 </h3>

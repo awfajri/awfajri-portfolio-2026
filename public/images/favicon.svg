@@ -1,0 +1,17 @@
+<svg width="1080" height="1080" viewBox="0 0 1080 1080" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<circle cx="539.999" cy="544.797" r="181.277" fill="white"/>
+<g id="Repeat group 3_inner" data-figma-trr="r6u1.5-0f">
+<path d="M350.996 184.968C339.472 110.281 397.252 42.9023 472.823 42.9023H599.796C677.834 42.9023 736.234 114.5 720.55 190.945L689.54 342.09C677.777 399.426 627.317 440.585 568.787 440.585H496.144C435.323 440.585 383.592 396.223 374.317 336.113L350.996 184.968Z" fill="url(#paint0_linear_658_2766)"/>
+</g>
+<use xlink:href="#Repeat%20group%203_inner" transform="translate(737.657 -197.652) rotate(60)"/>
+<use xlink:href="#Repeat%20group%203_inner" transform="translate(1277.66 342.352) rotate(120)"/>
+<use xlink:href="#Repeat%20group%203_inner" transform="translate(1080 1080.01) rotate(-180)"/>
+<use xlink:href="#Repeat%20group%203_inner" transform="translate(342.343 1277.66) rotate(-120)"/>
+<use xlink:href="#Repeat%20group%203_inner" transform="translate(-197.657 737.656) rotate(-60)"/>
+<defs>
+<linearGradient id="paint0_linear_658_2766" x1="238.283" y1="128.495" x2="635.275" y2="549.608" gradientUnits="userSpaceOnUse">
+<stop stop-color="#AED7F0"/>
+<stop offset="1" stop-color="#6B4FBF"/>
+</linearGradient>
+</defs>
+</svg>

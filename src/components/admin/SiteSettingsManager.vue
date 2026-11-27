@@ -23,7 +23,17 @@ const medalOptions = [
   { label: '1st Place (1st.svg)', value: '/images/1st.svg' },
   { label: '2nd Place (2nd.svg)', value: '/images/2nd.svg' },
   { label: '3rd Place (3rd.svg)', value: '/images/3rd.svg' },
+  { label: '4th Place (4th.svg)', value: '/images/4th.svg' },
+  { label: '5th Place (5th.svg)', value: '/images/5th.svg' },
   { label: 'Top 10 / Finalist (10th.svg)', value: '/images/10th.svg' },
+]
+
+const capabilityBadgeOptions = [
+  { label: 'Auto (Default)', value: '' },
+  { label: 'Designer (badge-designer.svg)', value: '/images/badge-designer.svg' },
+  { label: 'Animator (badge-animator.svg)', value: '/images/badge-animator.svg' },
+  { label: 'Illustrator (badge-illustrator.svg)', value: '/images/badge-illustrator.svg' },
+  { label: '3D / Systems (badge-3d-artist.svg)', value: '/images/badge-3d-artist.svg' },
 ]
 
 const newHonor = ref<Omit<HonorItem, 'id'>>({
@@ -51,6 +61,7 @@ watch(
       capabilities: (val.capabilities || []).map((c) => ({
         title: c.title,
         items: [...c.items],
+        badgeSvg: c.badgeSvg || '',
       })),
     }
   },
@@ -66,7 +77,7 @@ function removeHighlight(idx: number) {
 }
 
 function addCapabilityColumn() {
-  settingsForm.value.capabilities.push({ title: '', items: [] })
+  settingsForm.value.capabilities.push({ title: '', items: [], badgeSvg: '' })
 }
 
 function removeCapabilityColumn(idx: number) {
@@ -203,6 +214,10 @@ async function deleteCertificate(id: string) {
           rows="3"
           class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-[#2454E8] focus:outline-none"
         />
+        <p class="mt-1.5 text-[11px] text-slate-400">
+          Inline badge tokens: <code>[designer]</code>, <code>[animator]</code>,
+          <code>[illustrator]</code>, <code>[3d]</code>
+        </p>
       </div>
 
       <div class="pt-4 border-t border-slate-100 space-y-3">
@@ -471,6 +486,16 @@ async function deleteCertificate(id: string) {
                 <HugeiconsIcon :icon="Delete02Icon" class="size-4" />
               </button>
             </div>
+
+            <select
+              v-model="cap.badgeSvg"
+              class="w-full rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 focus:border-[#2454E8] focus:outline-none"
+            >
+              <option v-for="b in capabilityBadgeOptions" :key="b.value" :value="b.value">
+                {{ b.label }}
+              </option>
+            </select>
+
             <textarea
               :value="cap.items.join('\n')"
               @input="updateCapabilityItems(idx, ($event.target as HTMLTextAreaElement).value)"
